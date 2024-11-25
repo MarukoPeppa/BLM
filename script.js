@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const recordTypes = {
+  const blrecordTypes = {
     BL00: "BL00 - Administration Record",
     BL10: "BL10 - Header Record",
     BL20: "BL20 - Reference Record",
@@ -13,7 +13,7 @@ document.addEventListener("DOMContentLoaded", () => {
     BL51: "BL51 - Handling Instruction Record",
     BL52: "BL52 - Temperature Range and/or Setting Record",
     BL53: "BL53 - Additional Product ID Record",
-    BL54: "Dimensions Record",
+    BL54: "BL54 - Dimensions Record",
     BL55: "BL55 - Split Goods Placement Record",
     BL57: "BL57 - Split Goods Placement Record",
     BL58: "BL58 - Dangerous Goods Additional Information Record",
@@ -29,43 +29,82 @@ document.addEventListener("DOMContentLoaded", () => {
     BL90: "BL90 - Remarks Record",
   };
 
+  const awrecordTypes = {
+    AW00: "AW00 - Administration Distribution Record",
+    AW10: "AW10 - Header Record",
+    AW20: "AW20 - Declared Values Record",
+    AW25: "AW25 - Charges Record",
+    AW30: "AW30 - Reference Record",
+    AW35: "AW35 - Accounting Record",
+    AW40: "AW40 - Routing and Destination Record",
+    AW41: "AW41 - Routing and Destination Record",
+    AW45: "AW45 - Calculation of Other Charges Record",
+    AW50: "AW50 - Address Record (Unstructured) ",
+    AW51: "AW51 - Address Record (Structured) ",
+    AW55: "AW55 - Communication Contact Record",
+    AW60: "AW60 - Agent Record",
+    AW70: "AW70 - Goods Description and Rate Calculation Record ",
+    AW75: "AW75 - Measurements Record ",
+    AW76: "AW76 - Dimension Record ",
+    AW95: "AW95 - Total Weight Record ",
+  };
+
   const tabsContainer = document.getElementById("tabs");
   const tabContentsContainer = document.getElementById("tab-contents");
-  const transformButton = document.getElementById("transform-button");
-  const flatfileInput = document.getElementById("flatfile-input");
+  const transformButton = document.getElementById("transformButton");
+  const flatfileInput = document.getElementById("inputTextArea");
+  const inputContent = flatfileInput.value;
 
   // Function to create tabs and tables
-  const createTabsAndTables = () => {
-    tabsContainer.innerHTML = "";
-    tabContentsContainer.innerHTML = "";
-
-    Object.keys(blStructures).forEach((key, index) => {
-      // Create tab
-      const tab = document.createElement("div");
-      tab.className = "tab";
-      tab.textContent = recordTypes[key] || key; // Use record type description if available
-      tab.dataset.tab = key;
-      tabsContainer.appendChild(tab);
-
-      // Create tab content
-      const tabContent = document.createElement("div");
-      tabContent.className = "tab-content";
-      tabContent.id = `content-${key}`;
-      tabContentsContainer.appendChild(tabContent);
-
-      // Create table
-      const table = document.createElement("table");
-      const tbody = document.createElement("tbody");
-      table.appendChild(tbody);
-      tabContent.appendChild(table);
-    });
-  };
 
   // Function to transform flat file content
   const transformFlatFile = () => {
     console.log("Transform button clicked");
     const flatfileContent = flatfileInput.value;
-    console.log("Flat file content:", flatfileContent);
+
+    let fileType = determineFileType(flatfileContent);
+    console.log(fileType);
+    let fileStructures = fileType === "BL" ? blStructures : awStructures;
+    let recordTypes = fileType === "BL" ? blrecordTypes : awrecordTypes;
+
+    const createTabsAndTables = () => {
+      tabsContainer.innerHTML = "";
+      tabContentsContainer.innerHTML = "";
+
+      Object.keys(fileStructures).forEach((key, index) => {
+        // Create tab
+        const tab = document.createElement("div");
+        tab.className = "tab";
+        tab.textContent = recordTypes[key] || key; // Use record type description if available
+        tab.dataset.tab = key;
+        tabsContainer.appendChild(tab);
+
+        // Create tab content
+        const tabContent = document.createElement("div");
+        tabContent.className = "tab-content";
+        tabContent.id = `content-${key}`;
+        tabContentsContainer.appendChild(tabContent);
+
+        // Create table
+        const table = document.createElement("table");
+        const tbody = document.createElement("tbody");
+        table.appendChild(tbody);
+        tabContent.appendChild(table);
+      });
+    };
+
+    // Initial setup
+    createTabsAndTables();
+
+    function determineFileType(text) {
+      if (text.includes("BL00")) {
+        return "BL";
+      } else if (text.includes("AW00")) {
+        return "AW";
+      } else {
+        return "Unknown";
+      }
+    }
     const lines = flatfileContent.split("\n");
     console.log("Lines:", lines);
 
@@ -79,7 +118,7 @@ document.addEventListener("DOMContentLoaded", () => {
     lines.forEach((line) => {
       const recordType = line.substring(0, 4);
       console.log("Processing record type:", recordType);
-      const structure = blStructures[recordType];
+      const structure = fileStructures[recordType];
       if (structure) {
         if (!data[recordType]) {
           data[recordType] = [];
@@ -94,7 +133,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     Object.keys(data).forEach((recordType) => {
       const tableBody = document.querySelector(`#content-${recordType} tbody`);
-      const structure = blStructures[recordType];
+      const structure = fileStructures[recordType];
 
       // Transpose data
       for (let i = 0; i < structure.length; i++) {
@@ -126,9 +165,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   };
-
-  // Initial setup
-  createTabsAndTables();
 
   // Tab click event
   tabsContainer.addEventListener("click", (event) => {

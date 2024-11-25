@@ -106,7 +106,7 @@ const blStructures = {
     { name: "NAD-POST-CODE", length: 9, start: 213, end: 221 },
     { name: "NAD-COUNTRY-CODE", length: 2, start: 222, end: 223 },
     { name: "NAD-REF-REFERENCE-NUMBER", length: 35, start: 224, end: 258 },
-    { name: "NAD-VAT-REGISTRATION-NUMBER", length: 35, start: 259, end: 293 },
+    { name: "NAD-VAT-REGISTRATION-NUMBER", length: 35, start: 269, end: 293 },
     {
       name: "NAD-ADDRESS-IDENTIFICATION-NUMBER",
       length: 35,
